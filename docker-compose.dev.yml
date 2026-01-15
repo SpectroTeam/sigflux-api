@@ -1,0 +1,56 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sigflux-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sigflux}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sigflux123}
+      POSTGRES_DB: ${POSTGRES_DB:-sigflux}
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    networks:
+      - sigflux-network-dev
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-sigflux}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: sigflux-api-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: ${PORT:-3000}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-sigflux}:${POSTGRES_PASSWORD:-sigflux123}@postgres:5432/${POSTGRES_DB:-sigflux}?schema=public
+    ports:
+      - '${PORT:-3000}:3000'
+    volumes:
+      - ./src:/app/src
+      - ./prisma:/app/prisma
+      - node_modules:/app/node_modules
+      - generated:/app/generated
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - sigflux-network-dev
+    command: sh -c "npx prisma migrate deploy && npm run dev"
+
+volumes:
+  postgres_data_dev:
+    driver: local
+  node_modules:
+    driver: local
+  generated:
+    driver: local
+
+networks:
+  sigflux-network-dev:
+    driver: bridge

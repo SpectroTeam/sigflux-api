@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "API backend para SigFlux",
   "main": "dist/index.js",
-  "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",

@@ -1,0 +1,18 @@
+model Employee {
+  id                 String        @id @default(uuid())
+  personId           String        @unique @map("person_id")
+  person             Person        @relation(fields: [personId], references: [id], onDelete: Cascade)
+  email              String        @unique
+  password           String
+  registrationNumber String        @unique @map("registration_number")
+  type               EmployeeType
+  supportHouseId     String?       @map("support_house_id")
+  
+  supportHouse       SupportHouse? @relation(fields: [supportHouseId], references: [id], onDelete: SetNull)
+  trips              Trip[]
+  
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
+
+  @@map("employees")
+}

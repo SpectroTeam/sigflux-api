@@ -9,6 +9,8 @@ model SupportHouse {
   updatedAt      DateTime        @updatedAt @map("updated_at")
   
   accommodations Accommodation[]
+  employees      Employee[]
+  tripRoutes     TripRoute[]
 
   @@map("support_houses")
 }

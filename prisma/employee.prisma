@@ -1,0 +1,38 @@
+model Employee {
+  id                 String   @id @default(uuid())
+  personId           String   @unique @map("person_id")
+  person             Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  email              String   @unique
+  password           String
+  registrationNumber String   @unique @map("registration_number")
+  
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+  
+  driver             Driver?
+  manager            Manager?
+
+  @@map("employees")
+}
+
+model Driver {
+  id         String   @id @default(uuid())
+  employeeId String   @unique @map("employee_id")
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("drivers")
+}
+
+model Manager {
+  id         String   @id @default(uuid())
+  employeeId String   @unique @map("employee_id")
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("managers")
+}

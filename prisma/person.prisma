@@ -1,0 +1,69 @@
+model Person {
+  id                String    @id @default(uuid())
+  taxId             String    @unique @map("tax_id")
+  name              String
+  birthDate         DateTime  @map("birth_date")
+  phone             String
+  idCard            String?   @map("id_card")
+  addressStreet     String?   @map("address_street")
+  addressNumber     String?   @map("address_number")
+  addressNeighborhood String? @map("address_neighborhood")
+  addressCity       String?   @map("address_city")
+  addressState      String?   @map("address_state")
+  addressZipCode    String?   @map("address_zip_code")
+  addressPhone      String?   @map("address_phone")
+  
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  
+  companion         Companion?
+  patient           Patient?
+  employee          Employee?
+  documents         Document[]
+  accommodations    Accommodation[]
+
+  @@map("people")
+}
+
+model Companion {
+  id        String   @id @default(uuid())
+  personId  String   @unique @map("person_id")
+  person    Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  patients  PatientGuardian[]
+
+  @@map("companions")
+}
+
+model Patient {
+  id              String    @id @default(uuid())
+  personId        String    @unique @map("person_id")
+  person          Person    @relation(fields: [personId], references: [id], onDelete: Cascade)
+  medicalNotes    String?   @map("medical_notes") @db.Text
+  
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  
+  guardians       PatientGuardian[]
+
+  @@map("patients")
+}
+
+model PatientGuardian {
+  id           String       @id @default(uuid())
+  companionId  String       @map("companion_id")
+  patientId    String       @map("patient_id")
+  relationship Relationship
+  
+  companion    Companion    @relation(fields: [companionId], references: [id], onDelete: Cascade)
+  patient      Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  @@unique([companionId, patientId])
+  @@map("patient_guardians")
+}

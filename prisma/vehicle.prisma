@@ -1,0 +1,26 @@
+model Vehicle {
+  id         String   @id @default(uuid())
+  plate      String   @unique
+  model      String
+  brand      String?
+  year       Int?
+  capacity   Int?
+  
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("vehicles")
+}
+
+model Trip {
+  id              String    @id @default(uuid())
+  origin          String
+  destination     String
+  departureDate   DateTime  @map("departure_date")
+  arrivalDate     DateTime? @map("arrival_date")
+  
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@map("trips")
+}

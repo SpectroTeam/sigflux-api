@@ -1,0 +1,51 @@
+export enum DocumentType {
+  RG = 'RG',
+  CPF = 'CPF',
+  CNH = 'CNH',
+  BIRTH_CERTIFICATE = 'BIRTH_CERTIFICATE',
+  PROOF_OF_RESIDENCE = 'PROOF_OF_RESIDENCE',
+  MEDICAL_REPORT = 'MEDICAL_REPORT',
+  OTHER = 'OTHER',
+}
+
+export enum Relationship {
+  FATHER = 'FATHER',
+  MOTHER = 'MOTHER',
+  SON = 'SON',
+  DAUGHTER = 'DAUGHTER',
+  SPOUSE = 'SPOUSE',
+  BROTHER = 'BROTHER',
+  SISTER = 'SISTER',
+  UNCLE = 'UNCLE',
+  AUNT = 'AUNT',
+  GRANDFATHER = 'GRANDFATHER',
+  GRANDMOTHER = 'GRANDMOTHER',
+  OTHER = 'OTHER',
+}
+
+export enum PersonType {
+  PATIENT = 'PATIENT',
+  COMPANION = 'COMPANION',
+  EMPLOYEE = 'EMPLOYEE',
+  OTHER = 'OTHER',
+}
+
+export enum EmployeeType {
+  DRIVER = 'DRIVER',
+  MANAGER = 'MANAGER',
+  ADMIN = 'ADMIN',
+  OTHER = 'OTHER',
+}
+
+export enum VehicleStatus {
+  ACTIVE = 'ACTIVE',
+  MAINTENANCE = 'MAINTENANCE',
+  INACTIVE = 'INACTIVE',
+}
+
+export enum VehicleDocumentType {
+  INSURANCE = 'INSURANCE',
+  REGISTRATION = 'REGISTRATION',
+  INSPECTION = 'INSPECTION',
+  OTHER = 'OTHER',
+}

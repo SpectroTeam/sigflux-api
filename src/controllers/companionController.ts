@@ -3,7 +3,7 @@ import { CompanionService } from "../services/companionService";
 
 export class CompanionController {
 
-    static async createCompanion(res: Response, req: Request) {
+    static async createCompanion(req: Request, res: Response) {
         try {
             const companion = await CompanionService.createCompanion(req.body);
             res.status(201).json({
@@ -18,7 +18,7 @@ export class CompanionController {
         }
     }
 
-    static async findAllByPatient(res: Response, req: Request){
+    static async findAllByPatient(req: Request, res: Response){
         try {
             const patientId = String(req.params.patientId);
             const companion = await CompanionService.findAllByPatient(patientId);
@@ -30,7 +30,7 @@ export class CompanionController {
         }
     }
 
-    static async findById(res:Response, req:Request){
+    static async findById(req: Request, res: Response){
         try {
             const id = String(req.params.id_);
             const companion = await CompanionService.findById(id);

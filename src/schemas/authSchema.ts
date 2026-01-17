@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { EmployeeType } from '../../generated/prisma';
+import { EmployeeType } from '@prisma/client';
 
 export const loginSchema = z.object({
   email: z.string().email('Invalid email format'),

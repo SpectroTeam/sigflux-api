@@ -1,0 +1,300 @@
+model SupportHouse {
+  id       String  @id @default(uuid())
+  name     String
+  address  String
+  phone    String?
+  capacity Int?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  accommodations Accommodation[]
+  employees      Employee[]
+  tripRoutes     TripRoute[]
+
+  @@map("support_houses")
+}
+
+model Accommodation {
+  id             String    @id @default(uuid())
+  personId       String    @map("person_id")
+  supportHouseId String    @map("support_house_id")
+  checkInDate    DateTime  @map("check_in_date")
+  checkOutDate   DateTime? @map("check_out_date")
+
+  person       Person       @relation(fields: [personId], references: [id], onDelete: Cascade)
+  supportHouse SupportHouse @relation(fields: [supportHouseId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("accommodations")
+}
+
+model Document {
+  id         String       @id @default(uuid())
+  personId   String       @map("person_id")
+  person     Person       @relation(fields: [personId], references: [id], onDelete: Cascade)
+  name       String
+  type       DocumentType
+  size       Int
+  path       String
+  uploadDate DateTime     @default(now()) @map("upload_date")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("documents")
+}
+
+model Employee {
+  id                 String       @id @default(uuid())
+  personId           String       @unique @map("person_id")
+  person             Person       @relation(fields: [personId], references: [id], onDelete: Cascade)
+  email              String       @unique
+  password           String
+  registrationNumber String       @unique @map("registration_number")
+  type               EmployeeType
+  supportHouseId     String?      @map("support_house_id")
+
+  supportHouse SupportHouse? @relation(fields: [supportHouseId], references: [id], onDelete: SetNull)
+  trips        Trip[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("employees")
+}
+
+enum DocumentType {
+  RG
+  CPF
+  CNH
+  BIRTH_CERTIFICATE
+  PROOF_OF_RESIDENCE
+  MEDICAL_REPORT
+  OTHER
+}
+
+enum Relationship {
+  FATHER
+  MOTHER
+  SON
+  DAUGHTER
+  SPOUSE
+  BROTHER
+  SISTER
+  UNCLE
+  AUNT
+  GRANDFATHER
+  GRANDMOTHER
+  OTHER
+}
+
+enum PersonType {
+  PATIENT
+  COMPANION
+  EMPLOYEE
+  OTHER
+}
+
+enum EmployeeType {
+  DRIVER
+  MANAGER
+  ADMIN
+  OTHER
+}
+
+enum VehicleStatus {
+  ACTIVE
+  MAINTENANCE
+  INACTIVE
+}
+
+enum VehicleDocumentType {
+  INSURANCE
+  REGISTRATION
+  INSPECTION
+  OTHER
+}
+
+enum TripStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model Person {
+  id           String     @id @default(uuid())
+  cpf          String     @unique
+  name         String
+  birthDate    DateTime   @map("birth_date")
+  rg           String?
+  type         PersonType
+  medicalNotes String?    @map("medical_notes") @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  phones         Phone[]
+  address        Address?
+  employee       Employee?
+  documents      Document[]
+  accommodations Accommodation[]
+  tripPassengers TripPassenger[]
+
+  companionGuardianships PatientGuardian[] @relation("companion")
+  patientGuardianships   PatientGuardian[] @relation("patient")
+
+  @@map("people")
+}
+
+model Phone {
+  id       String @id @default(uuid())
+  personId String @map("person_id")
+  person   Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  number String
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("phones")
+}
+
+model Address {
+  id       String @id @default(uuid())
+  personId String @unique @map("person_id")
+  person   Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  street       String
+  number       String?
+  neighborhood String?
+  city         String
+  state        String
+  zipCode      String? @map("zip_code")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("addresses")
+}
+
+model PatientGuardian {
+  id           String       @id @default(uuid())
+  tripId       String       @map("trip_id")
+  companionId  String       @map("companion_id")
+  patientId    String       @map("patient_id")
+  relationship Relationship
+
+  trip      Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  companion Person @relation("companion", fields: [companionId], references: [id], onDelete: Cascade)
+  patient   Person @relation("patient", fields: [patientId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([tripId, companionId, patientId])
+  @@map("patient_guardians")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Vehicle {
+  id          String        @id @default(uuid())
+  plate       String        @unique
+  chassis     String        @unique
+  model       String
+  year        Int
+  color       String
+  maxCapacity Int           @map("max_capacity")
+  status      VehicleStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  trips     Trip[]
+  documents VehicleDocument[]
+
+  @@map("vehicles")
+}
+
+model Trip {
+  id            String     @id @default(uuid())
+  vehicleId     String     @map("vehicle_id")
+  driverId      String     @map("driver_id")
+  origin        String
+  destination   String
+  departureDate DateTime   @map("departure_date")
+  arrivalDate   DateTime?  @map("arrival_date")
+  status        TripStatus @default(SCHEDULED)
+
+  vehicle Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+  driver  Employee @relation(fields: [driverId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  passengers       TripPassenger[]
+  patientGuardians PatientGuardian[]
+  routes           TripRoute[]
+
+  @@map("trips")
+}
+
+model TripPassenger {
+  id       String @id @default(uuid())
+  tripId   String @map("trip_id")
+  personId String @map("person_id")
+
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  person Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([tripId, personId])
+  @@map("trip_passengers")
+}
+
+model TripRoute {
+  id             String @id @default(uuid())
+  tripId         String @map("trip_id")
+  supportHouseId String @map("support_house_id")
+  sequence       Int
+
+  trip         Trip         @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  supportHouse SupportHouse @relation(fields: [supportHouseId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([tripId, supportHouseId])
+  @@map("trip_routes")
+}
+
+model VehicleDocument {
+  id         String              @id @default(uuid())
+  vehicleId  String              @map("vehicle_id")
+  vehicle    Vehicle             @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  name       String
+  type       VehicleDocumentType
+  expiryDate DateTime?           @map("expiry_date")
+  size       Int
+  path       String
+  uploadDate DateTime            @default(now()) @map("upload_date")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("vehicle_documents")
+}

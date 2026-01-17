@@ -2,7 +2,7 @@ import express, { Express } from 'express';
 import cors from 'cors';
 import { config } from './config';
 import { errorHandler } from './middleware/errorHandler';
-import healthRoutes from './routes/health';
+import routes from './routes';
 
 const app: Express = express();
 
@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/api', healthRoutes);
+app.use(`/api/${config.apiVersion}`, routes);
 
 app.use(errorHandler);
 

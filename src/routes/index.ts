@@ -2,15 +2,17 @@ import { Router } from 'express';
 import healthRoutes from './health';
 import authRoutes from './auth';
 import patientRoutes from './patients';
-import companionRouter from "./companion";
-import supportHouse from './supportHouse';
+import companionRoutes from "./companion";
+import supportHouseRoutes from './supportHouse';
+import driverRoutes from "./driver";
 
 const router = Router();
 
 router.use('/health', healthRoutes);
 router.use('/auth', authRoutes);
 router.use('/patients', patientRoutes);
-router.use('/companions', companionRouter);
-router.use('/supporthouse', supportHouse);
+router.use('/companions', companionRoutes);
+router.use('/supporthouse', supportHouseRoutes);
+router.use('/drivers', driverRoutes)
 
 export default router;

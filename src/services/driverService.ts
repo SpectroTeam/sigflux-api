@@ -1,10 +1,18 @@
 import prisma from '../lib/prisma';
 import { EmployeeType, DocumentType, PersonType } from '@prisma/client';
-import { CreateDriver, UpdateDriver} from '../types/driver';
+import { CreateDriver, UpdateDriver } from '../types/driver';
+import bcrypt from 'bcryptjs';
 
 export class DriverService {
 
+    static async hashPassword(password: string): Promise<string> {
+        const salt = await bcrypt.genSalt(10);
+        return bcrypt.hash(password, salt);
+    }
+
     static async createDriver(data: CreateDriver) {
+
+        const hashedPassword = await this.hashPassword(data.password);
 
         const driver = await prisma.person.create({
             data: {
@@ -20,10 +28,10 @@ export class DriverService {
                 employee: {
                     create: {
                         email: data.email,
-                        password: data.password,
+                        password: hashedPassword,
                         registrationNumber: data.registrationNumber,
                         type: EmployeeType.DRIVER
-                    }
+                    },
                 },
 
                 documents: {
@@ -32,6 +40,21 @@ export class DriverService {
                         type: DocumentType.CNH,
                         size: data.file.size,
                         path: data.file.path,
+                    }
+                }
+            },
+            include: {
+                documents: true,
+                phones: true,
+                employee:{
+                    select:{
+                        email: true,
+                        registrationNumber: true,
+                        id: true,
+                        type: true,
+                        personId: true,
+                        updatedAt: true,
+                        createdAt: true
                     }
                 }
             }
@@ -46,11 +69,25 @@ export class DriverService {
             where: {
                 id
             },
-            include: {
+            select: {
+                id: true,
+                type: true,
+                registrationNumber: true,
+                email: true,
+                createdAt: true,
+                updatedAt: true,
+                personId: true,
+
                 person: {
-                    include: {
+                    select: {
+                        id: true,
+                        name: true,
+                        birthDate: true,
+                        cpf: true,
                         phones: true,
-                        documents: true
+                        documents: true,
+                        updatedAt: true,
+                        createdAt: true,
                     }
                 }
             }
@@ -62,16 +99,31 @@ export class DriverService {
             where: {
                 type: EmployeeType.DRIVER
             },
-            include: {
+            select: {
+                id: true,
+                type: true,
+                registrationNumber: true,
+                email: true,
+                createdAt: true,
+                updatedAt: true,
+                personId: true,
+
                 person: {
-                    include: {
+                    select: {
+                        id: true,
+                        name: true,
+                        birthDate: true,
+                        cpf: true,
                         phones: true,
-                        documents: true
+                        documents: true,
+                        updatedAt: true,
+                        createdAt: true,
                     }
                 }
             }
-        })
+        });
     }
+
     static async updateDriver(id: string, data: UpdateDriver) {
 
         const employee = await prisma.employee.findUnique({
@@ -104,41 +156,56 @@ export class DriverService {
 
         if (data.file) {
             personUpdateData.documents = {
-                upsert: {
-                    where: {
-                        personId_type: {
-                            personId: employee.personId,
-                            type: DocumentType.CNH
-                        }
-                    },
-                    update: {
-                        path: data.file.path,
-                        size: data.file.size
-                    },
-                    create: {
-                        name: "CNH",
-                        type: DocumentType.CNH,
-                        size: data.file.size,
-                        path: data.file.path,
-                        personId: employee.personId
-                    }
+                updateMany: {
+                    where: { personId: employee.personId, type: DocumentType.CNH },
+                    data: { path: data.file.path, size: data.file.size }
                 }
             };
         }
 
         return prisma.employee.update({
             where: { id },
-            data:{
+            data: {
                 person: {
                     update: personUpdateData
+                }
+            },
+            select: {
+                id: true,
+                type: true,
+                registrationNumber: true,
+                email: true,
+                createdAt: true,
+                updatedAt: true,
+                personId: true,
+
+                person: {
+                    select: {
+                        id: true,
+                        name: true,
+                        birthDate: true,
+                        cpf: true,
+                        phones: true,
+                        documents: true,
+                        updatedAt: true,
+                        createdAt: true,
+                    }
                 }
             }
         });
     }
 
 
-    static async deleteDriver(id: string) {
+    static async deleteDriver(personId: string) {
         return await prisma.employee.delete({
+            where: {
+                personId
+            }
+        })
+
+    }
+    static async deleteDriverTablePerson(id: string) {
+        return await prisma.person.delete({
             where: {
                 id
             }

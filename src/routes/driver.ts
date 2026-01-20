@@ -11,11 +11,11 @@ const router = Router();
 router.use(authenticate);
 router.use(requireManager);
 
-router.post("/", validate(createDriverSchema), uploadFileMiddleware, DriverController.createDriver);
+router.post("/", uploadFileMiddleware, validate(createDriverSchema), DriverController.createDriver);
 router.get("/:id", DriverController.findById);
 router.get("/", DriverController.findAllDriver);
-router.put("/:id", validate(updateDriverSchema), uploadFileMiddleware, DriverController.updateDriver);
-router.delete("/:id", DriverController.deleteDriver);
+router.put("/:id", uploadFileMiddleware, validate(updateDriverSchema), DriverController.updateDriver);
+router.delete("/:personId", DriverController.deleteDriver);
 
 export default router;
 

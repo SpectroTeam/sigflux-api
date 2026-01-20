@@ -1,15 +1,16 @@
-import "dotenv/config";
-import FormData from "form-data";
+import "dotenv/config"
+import formData from "form-data";
 import multer, {FileFilterCallback} from "multer";
 import {Request, Response, NextFunction} from "express";
 import axios from "axios";
+
 
 const ALLOWED_MIME_TYPES = ["image/png", "image/jpeg", "image/jpg"];
 const SIZE_MAX_FILE = 5 * 1024 * 1024;
 
 const upload = multer({
     storage: multer.memoryStorage(),
-    limits: {fieldSize: SIZE_MAX_FILE},
+    limits: {fileSize: SIZE_MAX_FILE},
     fileFilter: (req: Request, file: Express.Multer.File, cb: FileFilterCallback ) => {
         if(ALLOWED_MIME_TYPES.includes(file.mimetype)){
             cb(null, true);
@@ -21,11 +22,11 @@ const upload = multer({
 })
 
 async function apiUrl (file: Buffer): Promise<string> {
-    const form = new FormData();
+    const form = new formData();
     form.append("image", file.toString("base64"));
     try {
         const response = await axios.post(
-            `https://api.imgbb.com/1/upload?key=${process.env.IMGBB_API}`,form,
+            `https://api.imgbb.com/1/upload?key=${process.env.IMGBB_API_KEY}`,form,
             {
                 headers:{
                     ...form.getHeaders()

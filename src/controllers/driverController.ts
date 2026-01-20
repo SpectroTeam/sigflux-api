@@ -6,6 +6,7 @@ export class DriverController {
 
     static async createDriver(req: Request, res: Response) {
         try {
+            console.log(req.body.file)
             const driver = await DriverService.createDriver(req.body);
             res.status(201).json({
                 message: "Driver registered successfully",
@@ -57,8 +58,9 @@ export class DriverController {
 
     static async deleteDriver(req: Request, res: Response){
         try {
-            const id = String(req.params.id);
-            await DriverService.deleteDriver(id);
+            const personId = String(req.params.personId);
+            await DriverService.deleteDriver(personId);
+            await DriverService.deleteDriverTablePerson(personId);
             res.status(200).json({
                 message: "Driver deleted successfully",
             })

@@ -14,7 +14,7 @@ router.use(requireManager);
 router.post("/", validate(createDriverSchema), uploadFileMiddleware, DriverController.createDriver);
 router.get("/:id", DriverController.findById);
 router.get("/", DriverController.findAllDriver);
-router.put("/:id", validate(updateDriverSchema), DriverController.updateDriver);
+router.put("/:id", validate(updateDriverSchema), uploadFileMiddleware, DriverController.updateDriver);
 router.delete("/:id", DriverController.deleteDriver);
 
 export default router;

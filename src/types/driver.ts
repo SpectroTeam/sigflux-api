@@ -9,14 +9,20 @@ export interface CreateDriver {
     phone: string;
     email: string,
     password: string
+    file:{
+        path: string;
+        size: number
+    }
 }
 
 export interface UpdateDriver {
     name?: string;
-    registrationNumber?: string;
     phone?: string;
-    email?: string;
     birthDate?: string;
+    file?:{
+        path: string;
+        size: number
+    }
 }
 
 export interface CNHDocument {

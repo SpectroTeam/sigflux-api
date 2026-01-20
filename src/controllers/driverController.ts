@@ -6,7 +6,7 @@ export class DriverController {
 
     static async createDriver(req: Request, res: Response) {
         try {
-            const driver = await DriverService.createDriver(req.body, req.body.file);
+            const driver = await DriverService.createDriver(req.body);
             res.status(201).json({
                 message: "Driver registered successfully",
                 driver,
@@ -43,7 +43,7 @@ export class DriverController {
     static async updateDriver(req: Request, res: Response){
         try {
             const id = String(req.params.id);
-            const data = req.body
+            const data = req.body;
             const driver = await DriverService.updateDriver(id, data);
             res.status(200).json({
                 message: "Driver updated successfully",

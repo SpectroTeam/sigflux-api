@@ -49,7 +49,10 @@ export const uploadFileMiddleware = [
         }
         const urlImg = await apiUrl(file.buffer);
 
-        req.body.file = urlImg;
+        req.body.file = {
+            path: urlImg,
+            size: file.size
+        }
         next();
     } catch (error) {
         console.log(error);

@@ -1,10 +1,10 @@
 import prisma from '../lib/prisma';
 import { EmployeeType, DocumentType, PersonType } from '@prisma/client';
-import { CreateDriver, UpdateDriver } from '../types/driver';
+import { CreateDriver, UpdateDriver} from '../types/driver';
 
 export class DriverService {
 
-    static async createDriver(data: CreateDriver, cnhPath: string) {
+    static async createDriver(data: CreateDriver) {
 
         const driver = await prisma.person.create({
             data: {
@@ -30,8 +30,8 @@ export class DriverService {
                     create: {
                         name: "CNH",
                         type: DocumentType.CNH,
-                        size: 0,
-                        path: cnhPath
+                        size: data.file.size,
+                        path: data.file.path,
                     }
                 }
             }
@@ -72,14 +72,23 @@ export class DriverService {
             }
         })
     }
-
     static async updateDriver(id: string, data: UpdateDriver) {
+
+        const employee = await prisma.employee.findUnique({
+            where: { id },
+            include: { person: true }
+        });
+
+        if (!employee) {
+            throw new Error("Driver not found");
+        }
 
         const personUpdateData: any = {};
 
         if (data.name) {
             personUpdateData.name = data.name;
         }
+
         if (data.birthDate) {
             personUpdateData.birthDate = new Date(data.birthDate);
         }
@@ -88,8 +97,30 @@ export class DriverService {
             personUpdateData.phones = {
                 updateMany: {
                     where: {},
-                    data: {
-                        number: data.phone
+                    data: { number: data.phone }
+                }
+            };
+        }
+
+        if (data.file) {
+            personUpdateData.documents = {
+                upsert: {
+                    where: {
+                        personId_type: {
+                            personId: employee.personId,
+                            type: DocumentType.CNH
+                        }
+                    },
+                    update: {
+                        path: data.file.path,
+                        size: data.file.size
+                    },
+                    create: {
+                        name: "CNH",
+                        type: DocumentType.CNH,
+                        size: data.file.size,
+                        path: data.file.path,
+                        personId: employee.personId
                     }
                 }
             };
@@ -97,19 +128,14 @@ export class DriverService {
 
         return prisma.employee.update({
             where: { id },
-            data: {
-                ...(data.registrationNumber && {
-                    registrationNumber: data.registrationNumber
-                }),
-                ...(data.email && {
-                    email: data.email
-                }),
+            data:{
                 person: {
                     update: personUpdateData
                 }
             }
         });
     }
+
 
     static async deleteDriver(id: string) {
         return await prisma.employee.delete({

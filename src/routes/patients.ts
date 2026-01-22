@@ -61,6 +61,12 @@ router.post('/', validate(createPatientSchema), PatientController.createPatient)
  *       - bearerAuth: []
  *     parameters:
  *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *           example: "Maria"
+ *         description: Search patients by name or CPF (with or without mask)
+ *       - in: query
  *         name: skip
  *         schema:
  *           type: integer
@@ -100,7 +106,7 @@ router.post('/', validate(createPatientSchema), PatientController.createPatient)
  *       500:
  *         description: Internal server error
  */
-router.get('/', PatientController.getAllPatients);
+router.get('/', PatientController.searchPatients);
 
 /**
  * @swagger

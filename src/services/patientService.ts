@@ -82,20 +82,45 @@ export class PatientService {
     return this.formatPatientResponse(patient);
   }
 
-  static async getAllPatients(skip = 0, take = 10): Promise<{ patients: PatientResponse[]; total: number }> {
+  static async searchPatients(
+    search: string | undefined, 
+    skip = 0, 
+    take = 10
+  ): Promise<{ patients: PatientResponse[]; total: number }> {
+
+    let whereClause: any = {
+      type: PersonType.PATIENT
+    };
+
+    const trimmedSearch = search?.trim();
+    const numericSearch = trimmedSearch?.replace(/\D/g, '');
+
+    if (numericSearch && /^\d+$/.test(numericSearch)) {
+      whereClause.cpf = {
+        startsWith: numericSearch,
+      };
+    } else if (trimmedSearch) {
+      whereClause.name = {
+        contains: trimmedSearch,
+        mode: 'insensitive',
+      };
+    }
+
     const [patients, total] = await Promise.all([
       prisma.person.findMany({
-        where: { type: PersonType.PATIENT },
+        where: whereClause,
         skip,
         take,
         include: {
           phones: true,
           address: true,
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: {
+          createdAt: 'desc',
+        },
       }),
       prisma.person.count({
-        where: { type: PersonType.PATIENT },
+        where: whereClause,
       }),
     ]);
 

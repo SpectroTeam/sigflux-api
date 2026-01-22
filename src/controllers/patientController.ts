@@ -37,12 +37,14 @@ export class PatientController {
     }
   }
 
-  static async getAllPatients(req: Request, res: Response) {
+  static async searchPatients(req: Request, res: Response) {
     try {
       const skip = req.query.skip ? parseInt(req.query.skip as string) : 0;
       const take = req.query.take ? parseInt(req.query.take as string) : 10;
 
-      const result = await PatientService.getAllPatients(skip, take);
+      const search = req.query.search as string | undefined;
+
+      const result = await PatientService.searchPatients(search, skip, take);
       res.status(200).json({
         patients: result.patients,
         pagination: {

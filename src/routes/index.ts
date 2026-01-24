@@ -5,6 +5,7 @@ import patientRoutes from './patients';
 import companionRoutes from "./companion";
 import supportHouseRoutes from './supportHouse';
 import driverRoutes from "./driver";
+import vehicleRoutes from "./vehicles";
 
 const router = Router();
 
@@ -13,6 +14,7 @@ router.use('/auth', authRoutes);
 router.use('/patients', patientRoutes);
 router.use('/companions', companionRoutes);
 router.use('/supporthouse', supportHouseRoutes);
-router.use('/drivers', driverRoutes)
+router.use('/drivers', driverRoutes);
+router.use('/vehicles', vehicleRoutes);
 
 export default router;

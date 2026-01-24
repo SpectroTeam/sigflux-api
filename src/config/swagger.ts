@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { version } from '../../package.json';
 import { loginSchema, registerSchema } from '../schemas/authSchema';
 import { createPatientSchema, updatePatientSchema } from '../schemas/patientSchema';
+import { createVehicleSchema, updateVehicleSchema, vehicleResponseSchema } from '../schemas/vehicleSchema';
 
 
 const authResponseSchema = z
@@ -68,6 +69,9 @@ const zodiocDoc = createDocument({
       RegisterRequest: registerSchema,
       CreatePatientRequest: createPatientSchema,
       UpdatePatientRequest: updatePatientSchema,
+      CreateVehicleRequest: createVehicleSchema,
+      UpdateVehicleRequest: updateVehicleSchema,
+      VehicleResponse: vehicleResponseSchema,
       AuthResponse: authResponseSchema,
       ErrorResponse: errorResponseSchema,
       PatientResponse: patientResponseSchema,

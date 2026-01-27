@@ -26,6 +26,17 @@ export class PatientController {
     }
   }
 
+  static async getPatientDetails(req: Request, res: Response) {
+    try {
+      const id = String(req.params.id);
+      const patient = await PatientService.getPatientDetails(id);
+      res.status(200).json(patient);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      res.status(404).json({ error: message });
+    }
+  }
+
   static async getPatientByCpf(req: Request, res: Response) {
     try {
       const cpf = String(req.params.cpf);
@@ -37,12 +48,14 @@ export class PatientController {
     }
   }
 
-  static async getAllPatients(req: Request, res: Response) {
+  static async searchPatients(req: Request, res: Response) {
     try {
       const skip = req.query.skip ? parseInt(req.query.skip as string) : 0;
       const take = req.query.take ? parseInt(req.query.take as string) : 10;
 
-      const result = await PatientService.getAllPatients(skip, take);
+      const search = req.query.search as string | undefined;
+
+      const result = await PatientService.searchPatients(search, skip, take);
       res.status(200).json({
         patients: result.patients,
         pagination: {

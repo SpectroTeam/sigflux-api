@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { PatientController } from '../controllers/patientController';
+import { VehicleController } from '../controllers/vehicleController';
 import { authenticate } from '../middleware/auth';
 import { requireManager } from '../middleware/authorization';
 import { validate } from '../middleware/validate';
-import { createPatientSchema, updatePatientSchema } from '../schemas/patientSchema';
+import { createVehicleSchema, updateVehicleSchema } from '../schemas/vehicleSchema';
 
 const router = Router();
 
@@ -12,11 +12,11 @@ router.use(requireManager);
 
 /**
  * @swagger
- * /api/v1/patients:
+ * /api/v1/vehicles:
  *   post:
- *     summary: Create a new patient
- *     description: Register a new patient in the system
- *     tags: [Patients]
+ *     summary: Create a new vehicle
+ *     description: Register a new vehicle in the system
+ *     tags: [Vehicles]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -24,10 +24,10 @@ router.use(requireManager);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/CreatePatientRequest'
+ *             $ref: '#/components/schemas/CreateVehicleRequest'
  *     responses:
  *       201:
- *         description: Patient created successfully
+ *         description: Vehicle created successfully
  *         content:
  *           application/json:
  *             schema:
@@ -35,28 +35,24 @@ router.use(requireManager);
  *               properties:
  *                 message:
  *                   type: string
- *                 patient:
- *                   $ref: '#/components/schemas/PatientResponse'
+ *                 vehicle:
+ *                   $ref: '#/components/schemas/VehicleResponse'
  *       400:
  *         description: Invalid input data
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: Unauthorized
  *       500:
  *         description: Internal server error
  */
-router.post('/', validate(createPatientSchema), PatientController.createPatient);
+router.post('/', validate(createVehicleSchema), VehicleController.createVehicle);
 
 /**
  * @swagger
- * /api/v1/patients:
+ * /api/v1/vehicles:
  *   get:
- *     summary: List all patients
- *     description: Retrieve a paginated list of all patients
- *     tags: [Patients]
+ *     summary: List all vehicles
+ *     description: Retrieve a paginated list of all vehicles
+ *     tags: [Vehicles]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -64,8 +60,8 @@ router.post('/', validate(createPatientSchema), PatientController.createPatient)
  *         name: search
  *         schema:
  *           type: string
- *           example: "Maria"
- *         description: Search patients by name or CPF (with or without mask)
+ *           example: "Toyota"
+ *         description: Search vehicles by plate, model or chassis
  *       - in: query
  *         name: skip
  *         schema:
@@ -80,16 +76,16 @@ router.post('/', validate(createPatientSchema), PatientController.createPatient)
  *         description: Number of records to take
  *     responses:
  *       200:
- *         description: List of patients retrieved successfully
+ *         description: List of vehicles retrieved successfully
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 patients:
+ *                 vehicles:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/PatientResponse'
+ *                     $ref: '#/components/schemas/VehicleResponse'
  *                 pagination:
  *                   type: object
  *                   properties:
@@ -106,15 +102,15 @@ router.post('/', validate(createPatientSchema), PatientController.createPatient)
  *       500:
  *         description: Internal server error
  */
-router.get('/', PatientController.searchPatients);
+router.get('/', VehicleController.searchVehicles);
 
 /**
  * @swagger
- * /api/v1/patients/id/{id}:
+ * /api/v1/vehicles/id/{id}:
  *   get:
- *     summary: Get patient by ID
- *     description: Retrieve a specific patient by their unique identifier
- *     tags: [Patients]
+ *     summary: Get vehicle by ID
+ *     description: Retrieve a specific vehicle by their unique identifier
+ *     tags: [Vehicles]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -123,95 +119,62 @@ router.get('/', PatientController.searchPatients);
  *         required: true
  *         schema:
  *           type: string
- *         description: Patient ID
+ *         description: Vehicle ID
  *     responses:
  *       200:
- *         description: Patient retrieved successfully
+ *         description: Vehicle retrieved successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/PatientResponse'
+ *               $ref: '#/components/schemas/VehicleResponse'
  *       401:
  *         description: Unauthorized
  *       404:
- *         description: Patient not found
+ *         description: Vehicle not found
  *       500:
  *         description: Internal server error
  */
-router.get('/id/:id', PatientController.getPatientById);
+router.get('/id/:id', VehicleController.getVehicleById);
 
 /**
  * @swagger
- * /api/v1/patients/cpf/{cpf}:
+ * /api/v1/vehicles/plate/{plate}:
  *   get:
- *     summary: Get patient by CPF
- *     description: Retrieve a specific patient by their CPF
- *     tags: [Patients]
+ *     summary: Get vehicle by Plate
+ *     description: Retrieve a specific vehicle by their Plate
+ *     tags: [Vehicles]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: cpf
+ *         name: plate
  *         required: true
  *         schema:
  *           type: string
- *           pattern: '^\d{3}\.\d{3}\.\d{3}-\d{2}$'
- *         description: Patient CPF in format XXX.XXX.XXX-XX
+ *         description: Vehicle Plate
  *     responses:
  *       200:
- *         description: Patient retrieved successfully
+ *         description: Vehicle retrieved successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/PatientResponse'
+ *               $ref: '#/components/schemas/VehicleResponse'
  *       401:
  *         description: Unauthorized
  *       404:
- *         description: Patient not found
+ *         description: Vehicle not found
  *       500:
  *         description: Internal server error
  */
-router.get('/cpf/:cpf', PatientController.getPatientByCpf);
+router.get('/plate/:plate', VehicleController.getVehicleByPlate);
 
 /**
  * @swagger
- * /api/v1/patients/{id}/details:
- *   get:
- *     summary: Get patient details
- *     description: Retrieve all patient information including documents, companions, and travel history
- *     tags: [Patients]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: Patient ID
- *     responses:
- *       200:
- *         description: Patient details retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/PatientDetailsResponse'
- *       401:
- *         description: Unauthorized
- *       404:
- *         description: Patient not found
- *       500:
- *         description: Internal server error
- */
-router.get('/:id/details', PatientController.getPatientDetails);
-
-/**
- * @swagger
- * /api/v1/patients/{id}:
+ * /api/v1/vehicles/{id}:
  *   put:
- *     summary: Update patient information
- *     description: Update the details of an existing patient
- *     tags: [Patients]
+ *     summary: Update vehicle information
+ *     description: Update the details of an existing vehicle
+ *     tags: [Vehicles]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -220,16 +183,16 @@ router.get('/:id/details', PatientController.getPatientDetails);
  *         required: true
  *         schema:
  *           type: string
- *         description: Patient ID
+ *         description: Vehicle ID
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UpdatePatientRequest'
+ *             $ref: '#/components/schemas/UpdateVehicleRequest'
  *     responses:
  *       200:
- *         description: Patient updated successfully
+ *         description: Vehicle updated successfully
  *         content:
  *           application/json:
  *             schema:
@@ -237,26 +200,26 @@ router.get('/:id/details', PatientController.getPatientDetails);
  *               properties:
  *                 message:
  *                   type: string
- *                 patient:
- *                   $ref: '#/components/schemas/PatientResponse'
+ *                 vehicle:
+ *                   $ref: '#/components/schemas/VehicleResponse'
  *       400:
  *         description: Invalid input data
  *       401:
  *         description: Unauthorized
  *       404:
- *         description: Patient not found
+ *         description: Vehicle not found
  *       500:
  *         description: Internal server error
  */
-router.put('/:id', validate(updatePatientSchema), PatientController.updatePatient);
+router.put('/:id', validate(updateVehicleSchema), VehicleController.updateVehicle);
 
 /**
  * @swagger
- * /api/v1/patients/{id}:
+ * /api/v1/vehicles/{id}:
  *   delete:
- *     summary: Delete a patient
- *     description: Remove a patient from the system
- *     tags: [Patients]
+ *     summary: Delete a vehicle
+ *     description: Remove a vehicle from the system
+ *     tags: [Vehicles]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -265,10 +228,10 @@ router.put('/:id', validate(updatePatientSchema), PatientController.updatePatien
  *         required: true
  *         schema:
  *           type: string
- *         description: Patient ID
+ *         description: Vehicle ID
  *     responses:
  *       200:
- *         description: Patient deleted successfully
+ *         description: Vehicle deleted successfully
  *         content:
  *           application/json:
  *             schema:
@@ -279,10 +242,10 @@ router.put('/:id', validate(updatePatientSchema), PatientController.updatePatien
  *       401:
  *         description: Unauthorized
  *       404:
- *         description: Patient not found
+ *         description: Vehicle not found
  *       500:
  *         description: Internal server error
  */
-router.delete('/:id', PatientController.deletePatient);
+router.delete('/:id', VehicleController.deleteVehicle);
 
 export default router;

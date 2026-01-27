@@ -97,6 +97,8 @@ export class SupportHouseService {
             const tripStart = route.trip.departureDate;
             const tripEnd = route.trip.arrivalDate ?? endDate;
 
+            if (!tripStart) continue;
+
             for (
                 let date = new Date(tripStart);
                 date <= tripEnd;

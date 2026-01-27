@@ -96,7 +96,7 @@ export class AuthService {
             cpf: data.personData.cpf,
             name: data.personData.name,
             birthDate: new Date(data.personData.birthDate),
-            rg: data.personData.rg,
+            rg: data.personData.rg ?? null,
             type: 'EMPLOYEE',
             phones: {
               create: {

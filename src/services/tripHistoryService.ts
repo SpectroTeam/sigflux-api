@@ -45,7 +45,7 @@ export class TripHistoryService {
             trip: trip
                 ? {
                     id: trip.id,
-                    date: trip.date,
+                    date: trip.departureDate.toISOString(),
                     status: trip.status,
                     createdAt: trip.createdAt.toISOString(),
                     updatedAt: trip.updatedAt.toISOString(),

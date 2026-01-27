@@ -5,6 +5,7 @@ import { version } from '../../package.json';
 import { loginSchema, registerSchema } from '../schemas/authSchema';
 import { createPatientSchema, updatePatientSchema } from '../schemas/patientSchema';
 import { createVehicleSchema, updateVehicleSchema, vehicleResponseSchema } from '../schemas/vehicleSchema';
+import { createTripSchema, updateTripSchema, updateTripStatusSchema, tripResponseSchema } from '../schemas/tripSchema';
 
 
 const authResponseSchema = z
@@ -121,6 +122,10 @@ const zodiocDoc = createDocument({
       ErrorResponse: errorResponseSchema,
       PatientResponse: patientResponseSchema,
       PatientDetailsResponse: patientDetailsResponseSchema,
+      CreateTripRequest: createTripSchema,
+      UpdateTripRequest: updateTripSchema,
+      TripResponse: tripResponseSchema,
+      UpdateTripStatusRequest: updateTripStatusSchema,
     },
     securitySchemes: {
       bearerAuth: {
@@ -149,20 +154,21 @@ const jsdocOptions: swaggerJsdoc.Options = {
   apis: ['./src/routes/*.ts'],
 };
 
-const jsdocSpec = swaggerJsdoc(jsdocOptions);
+const jsdocSpec = swaggerJsdoc(jsdocOptions) as any;
 
 export function getSwaggerSpec() {
+  const doc = zodiocDoc as any;
   return {
-    ...zodiocDoc,
+    ...doc,
     paths: jsdocSpec.paths || {},
     components: {
-      ...zodiocDoc.components,
+      ...doc.components,
       schemas: {
-        ...zodiocDoc.components?.schemas,
+        ...doc.components?.schemas,
         ...jsdocSpec.components?.schemas,
       },
       securitySchemes: {
-        ...zodiocDoc.components?.securitySchemes,
+        ...doc.components?.securitySchemes,
         ...jsdocSpec.components?.securitySchemes,
       },
     },

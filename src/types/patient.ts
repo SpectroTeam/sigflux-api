@@ -62,7 +62,7 @@ export interface PatientTravel {
   id: string;
   origin: string;
   destination: string;
-  departureDate: Date;
+  departureDate: Date | null;
   status: string;
   driverName?: string;
   vehiclePlate?: string;

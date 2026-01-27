@@ -23,9 +23,10 @@ model Trip {
   driverId        String     @map("driver_id")
   origin          String
   destination     String
-  departureDate   DateTime   @map("departure_date")
+  departureDate   DateTime?   @map("departure_date")
   arrivalDate     DateTime?  @map("arrival_date")
   status          TripStatus @default(SCHEDULED)
+  type            TripType   @default(OUTBOUND)
   
   vehicle         Vehicle    @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
   driver          Employee   @relation(fields: [driverId], references: [id], onDelete: Restrict)

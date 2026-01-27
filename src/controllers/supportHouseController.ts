@@ -34,7 +34,7 @@ export class SupportHouseController {
             res.status(400).json({ error: message });
         }
     }
-    static async updateSupportHouse(req: Request, res: Response){
+    static async updateSupportHouse(req: Request, res: Response) {
         try {
             const id = String(req.params.id);
             const data = req.body;
@@ -49,7 +49,7 @@ export class SupportHouseController {
         }
     }
 
-    static async deleteSupportHouse(req: Request, res: Response){
+    static async deleteSupportHouse(req: Request, res: Response) {
         try {
             const id = String(req.params.id);
             await SupportHouseService.deleteSupportHouse(id);
@@ -61,4 +61,27 @@ export class SupportHouseController {
             res.status(400).json({ error: message });
         }
     }
+
+    static async getOccupancyByPeriod(req: Request, res: Response) {
+        try {
+            const { id } = req.params;
+            const { startDate, endDate } = req.query;
+
+            if (!id || typeof id !== "string") {
+                return res.status(400).json({ message: "supportHouseId inválido", });
+            }
+
+            if (!startDate || !endDate) {
+                return res.status(400).json({ error: "Os parâmetros de consulta startDate e endDate são obrigatórios" });
+            }
+
+            const occupancy = await SupportHouseService.getOccupancyByPeriod(id, new Date(String(startDate)), new Date(String(endDate)));
+
+            res.status(200).json(occupancy);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "Unknown error";
+            res.status(400).json({ error: message });
+        }
+    }
+
 }

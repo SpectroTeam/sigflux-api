@@ -6,7 +6,7 @@ import companionRoutes from "./companion";
 import supportHouseRoutes from './supportHouse';
 import driverRoutes from "./driver";
 import vehicleRoutes from "./vehicles";
-import tripHistory from "./tripHistory";
+import tripRoutes from "./trips";
 
 const router = Router();
 
@@ -17,6 +17,6 @@ router.use('/companions', companionRoutes);
 router.use('/supporthouse', supportHouseRoutes);
 router.use('/drivers', driverRoutes);
 router.use('/vehicles', vehicleRoutes);
-router.use('/trips', tripHistory);
+router.use('/trips', tripRoutes);
 
 export default router;

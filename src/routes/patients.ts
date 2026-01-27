@@ -175,6 +175,38 @@ router.get('/cpf/:cpf', PatientController.getPatientByCpf);
 
 /**
  * @swagger
+ * /api/v1/patients/{id}/details:
+ *   get:
+ *     summary: Get patient details
+ *     description: Retrieve all patient information including documents, companions, and travel history
+ *     tags: [Patients]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Patient ID
+ *     responses:
+ *       200:
+ *         description: Patient details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PatientDetailsResponse'
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Patient not found
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/:id/details', PatientController.getPatientDetails);
+
+/**
+ * @swagger
  * /api/v1/patients/{id}:
  *   put:
  *     summary: Update patient information

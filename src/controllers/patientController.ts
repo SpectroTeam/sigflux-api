@@ -26,6 +26,17 @@ export class PatientController {
     }
   }
 
+  static async getPatientDetails(req: Request, res: Response) {
+    try {
+      const id = String(req.params.id);
+      const patient = await PatientService.getPatientDetails(id);
+      res.status(200).json(patient);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      res.status(404).json({ error: message });
+    }
+  }
+
   static async getPatientByCpf(req: Request, res: Response) {
     try {
       const cpf = String(req.params.cpf);

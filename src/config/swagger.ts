@@ -47,6 +47,51 @@ const patientResponseSchema = z
     description: 'Patient response data',
   });
 
+const patientDetailsResponseSchema = z.object({
+  id: z.string().meta({ description: 'Patient ID' }),
+  name: z.string().meta({ description: 'Patient name' }),
+  cpf: z.string().meta({ description: 'Patient CPF' }),
+  birthDate: z.string().or(z.date()).meta({ description: 'Birth date' }),
+  rg: z.string().nullable().optional().meta({ description: 'RG number' }),
+  medicalNotes: z.string().nullable().optional().meta({ description: 'Medical notes' }),
+  phones: z.array(z.object({
+    id: z.string(),
+    number: z.string()
+  })).meta({ description: 'Contact phones' }),
+  address: z.object({
+    street: z.string(),
+    number: z.string().nullable().optional(),
+    neighborhood: z.string().nullable().optional(),
+    city: z.string(),
+    state: z.string(),
+    zipCode: z.string().nullable().optional()
+  }).nullable().optional().meta({ description: 'Address' }),
+  documents: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    type: z.string(),
+    path: z.string(),
+    uploadDate: z.string().or(z.date())
+  })).meta({ description: 'Attached documents' }),
+  companions: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    relationship: z.string()
+  })).meta({ description: 'Linked companions' }),
+  travelHistory: z.array(z.object({
+    id: z.string(),
+    origin: z.string(),
+    destination: z.string(),
+    departureDate: z.string().or(z.date()),
+    status: z.string(),
+    driverName: z.string().optional(),
+    vehiclePlate: z.string().optional()
+  })).meta({ description: 'Travel history' })
+}).meta({
+  id: 'PatientDetailsResponse',
+  description: 'Detailed patient information including related data'
+});
+
 const zodiocDoc = createDocument({
   openapi: '3.1.0',
   info: {
@@ -75,6 +120,7 @@ const zodiocDoc = createDocument({
       AuthResponse: authResponseSchema,
       ErrorResponse: errorResponseSchema,
       PatientResponse: patientResponseSchema,
+      PatientDetailsResponse: patientDetailsResponseSchema,
     },
     securitySchemes: {
       bearerAuth: {

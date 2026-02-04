@@ -1,46 +1,33 @@
 # Dependencies
-node_modules
-npm-debug.log
-yarn-error.log
-yarn.lock
+node_modules/
 
-# Build output
-dist
-build
-*.tsbuildinfo
+# Build
+dist/
 
-# Environment variables
+# Environment
 .env
 .env.local
 .env.*.local
+!.env.example
+!.env.docker
 
 # IDE
-.vscode
-.idea
+.idea/
+.vscode/
 *.swp
 *.swo
-*~
 
 # OS
 .DS_Store
 Thumbs.db
 
+# Logs
+*.log
+npm-debug.log*
+
+# Docker
+.docker/
+
 # Git
 .git
 .gitignore
-.gitattributes
-
-# Docker
-Dockerfile
-docker-compose*.yml
-.dockerignore
-
-# Testing
-coverage
-.nyc_output
-
-# Misc
-*.log
-.cache
-tmp
-temp

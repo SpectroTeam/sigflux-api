@@ -1,8 +1,9 @@
 import { Server } from "http";
 import app from "./app";
-import { config } from './config';
 import { closePrismaConnection, dbHealthCheck } from "./lib/prisma";
 import { AddressInfo } from "net";
+
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 let server: Server;
 
@@ -28,7 +29,7 @@ async function init() {
         await dbHealthCheck();
         console.log("Connected to the database!");
         // inicia o servidor e loga a url de acesso
-        server = app.listen(config.port, () => {
+        server = app.listen(PORT, () => {
             const address = server.address() as AddressInfo;
             const host = address.address === '::' ? 'localhost' : address.address;
             const port = address.port;
@@ -46,6 +47,5 @@ async function init() {
         await gracefulShutdown(server);
     });
 });
-
 
 init();

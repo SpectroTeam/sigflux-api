@@ -1,118 +1,85 @@
-import { Router } from 'express';
-import { AuthController } from '../controllers/authController';
-import { authenticate } from '../middleware/auth';
-import { validate } from '../middleware/validate';
-import { loginSchema, registerSchema } from '../schemas/authSchema';
+import { Router, Request, Response } from 'express';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import prisma from '../lib/prisma';
+import { generateToken } from '../middleware/auth';
+import { AuthCredentials } from '../types';
 
 const router = Router();
 
-/**
- * @swagger
- * /api/v1/auth/login:
- *   post:
- *     summary: User login
- *     description: Authenticate user with email and password
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/LoginRequest'
- *     responses:
- *       200:
- *         description: Login successful
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/AuthResponse'
- *       401:
- *         description: Invalid credentials
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-router.post('/login', validate(loginSchema), AuthController.login);
+// POST /auth/login
+router.post('/login', async (req: Request, res: Response) => {
+    try {
+        const { matricula, password } = req.body as AuthCredentials;
 
-/**
- * @swagger
- * /api/v1/auth/register:
- *   post:
- *     summary: User registration
- *     description: Register a new user with email, password and personal data
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/RegisterRequest'
- *     responses:
- *       201:
- *         description: User registered successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 token:
- *                   type: string
- *                 employee:
- *                   type: object
- *       409:
- *         description: Email or CPF already registered
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-router.post('/register', validate(registerSchema), AuthController.register);
+        if (!matricula || !password) {
+            res.status(400).json({ error: 'Matrícula e senha são obrigatórios' });
+            return;
+        }
 
-/**
- * @swagger
- * /api/v1/auth/me:
- *   get:
- *     summary: Get current user information
- *     description: Retrieve the logged-in user's profile information
- *     tags: [Auth]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: User information retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 employee:
- *                   type: object
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-router.get('/me', authenticate, AuthController.me);
+        const user = await prisma.user.findUnique({
+            where: { matricula }
+        });
+
+        if (!user) {
+            res.status(401).json({ error: 'Credenciais inválidas' });
+            return;
+        }
+
+        const isValidPassword = await bcrypt.compare(password, user.password);
+
+        if (!isValidPassword) {
+            res.status(401).json({ error: 'Credenciais inválidas' });
+            return;
+        }
+
+        const token = generateToken({
+            userId: user.id,
+            matricula: user.matricula,
+        });
+
+        // Retorna usuário sem a senha
+        const { password: _, ...userWithoutPassword } = user;
+
+        res.json({
+            token,
+            user: userWithoutPassword,
+        });
+    } catch (error) {
+        console.error('Erro no login:', error);
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+});
+
+// POST /auth/validate - Valida token e retorna dados do usuário
+router.post('/validate', async (req: Request, res: Response) => {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+        res.status(401).json({ valid: false });
+        return;
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+
+    try {
+        const JWT_SECRET = process.env.JWT_SECRET || 'sigflux-secret-key-2024';
+        const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
+        
+        const user = await prisma.user.findUnique({
+            where: { id: decoded.userId }
+        });
+        
+        if (!user) {
+            res.status(401).json({ valid: false });
+            return;
+        }
+
+        const { password: _, ...userWithoutPassword } = user;
+        res.json({ valid: true, user: userWithoutPassword });
+    } catch {
+        res.status(401).json({ valid: false });
+    }
+});
 
 export default router;

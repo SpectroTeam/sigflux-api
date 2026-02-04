@@ -15,14 +15,12 @@ services:
       - sigflux-network-dev
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-sigflux}']
-      interval: 10s
+      interval: 5s
       timeout: 5s
       retries: 5
 
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
+    image: node:20-alpine
     container_name: sigflux-api-dev
     restart: unless-stopped
     env_file:
@@ -39,13 +37,13 @@ services:
       - ./prisma.config.ts:/app/prisma.config.ts
       - ./package.json:/app/package.json
       - ./package-lock.json:/app/package-lock.json
-      - node_modules:/app/node_modules
+      - ./node_modules:/app/node_modules
     depends_on:
       postgres:
         condition: service_healthy
     networks:
       - sigflux-network-dev
-    command: sh -c "npm install && npx prisma generate && npx prisma db push --skip-generate && npm run dev"
+    command: sh -c "cd /app && npm install && npx prisma generate && npx prisma db push --skip-generate && npm run dev"
 
 volumes:
   postgres_data_dev:

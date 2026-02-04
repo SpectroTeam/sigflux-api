@@ -1,31 +1,51 @@
-import express, { Express } from 'express';
-import cors from 'cors';
-import swaggerUi from 'swagger-ui-express';
+import { Server } from "http";
+import app from "./app";
 import { config } from './config';
-import { errorHandler } from './middleware/errorHandler';
-import routes from './routes';
-import { getSwaggerSpec } from './config/swagger';
+import { closePrismaConnection, dbHealthCheck } from "./lib/prisma";
+import { AddressInfo } from "net";
 
-const app: Express = express();
+let server: Server;
 
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+async function gracefulShutdown(server: Server): Promise<void> {
+    try {
+        await closePrismaConnection();
+        console.info("Closed database connection!");
 
-const swaggerSpec = getSwaggerSpec();
-app.use(`/api/${config.apiVersion}/docs`, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+        if (server) {
+            server.close();
+        }
 
-app.use(`/api/${config.apiVersion}`, routes);
+        process.exit();
+    } catch (error) {
+        console.info((error as Error).message);
+        process.exit(1);
+    }
+}
 
-app.use(errorHandler);
+async function init() {
+    try {
+        // verifica conexão com o banco de dados
+        await dbHealthCheck();
+        console.log("Connected to the database!");
+        // inicia o servidor e loga a url de acesso
+        server = app.listen(config.port, () => {
+            const address = server.address() as AddressInfo;
+            const host = address.address === '::' ? 'localhost' : address.address;
+            const port = address.port;
+            console.log(`App running on http://${host}:${port}`);
+        });
+    } catch (error) {
+        console.error(error);
+        gracefulShutdown(server);
+    }
+}
 
-const startServer = (): void => {
-  app.listen(config.port, () => {
-    console.log(`Server running at http://localhost:${config.port}`);
-    console.log(`Environment: ${config.nodeEnv}`);
-  });
-};
+// captura sinais de termino do processo e tenta finalizar de forma bacana
+["SIGINT", "SIGTERM", "uncaughtException", "unhandledRejection"].forEach((signal: string) => {
+    process.on(signal, async () => {
+        await gracefulShutdown(server);
+    });
+});
 
-startServer();
 
-export default app;
+init();

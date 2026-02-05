@@ -1,50 +1,48 @@
 import { Request, Response, NextFunction } from 'express';
-import { AuthService } from '../services/authService';
+import jwt from 'jsonwebtoken';
+import { JwtPayload } from '../types';
 
-export const authenticate = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
+const JWT_SECRET = process.env.JWT_SECRET || 'sigflux-secret-key-2024';
+
+export interface AuthenticatedRequest extends Request {
+    user?: JwtPayload;
+}
+
+export function authMiddleware(
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+): void {
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
-      res.status(401).json({ error: 'No token provided' });
-      return;
+        res.status(401).json({ error: 'Token não fornecido' });
+        return;
     }
 
     const parts = authHeader.split(' ');
 
     if (parts.length !== 2) {
-      res.status(401).json({ error: 'Token error' });
-      return;
+        res.status(401).json({ error: 'Token mal formatado' });
+        return;
     }
 
-    const [scheme, token] = parts as [string, string];
+    const [scheme, token] = parts;
 
     if (!/^Bearer$/i.test(scheme)) {
-      res.status(401).json({ error: 'Token malformatted' });
-      return;
+        res.status(401).json({ error: 'Token mal formatado' });
+        return;
     }
 
     try {
-      const decoded = AuthService.verifyToken(token);
-      const employee = await AuthService.getEmployeeById(decoded.employeeId);
-
-      if (!employee) {
-        res.status(401).json({ error: 'Employee not found' });
-        return;
-      }
-
-      req.employee = employee;
-      next();
+        const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+        req.user = decoded;
+        next();
     } catch (error) {
-      res.status(401).json({ error: 'Invalid token' });
-      return;
+        res.status(401).json({ error: 'Token inválido' });
     }
-  } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
-    return;
-  }
-};
+}
+
+export function generateToken(payload: JwtPayload): string {
+    return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
+}

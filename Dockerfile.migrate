@@ -1,0 +1,14 @@
+FROM node:20-alpine
+WORKDIR /app
+
+RUN apk add --no-cache \
+    openssl \
+    ca-certificates
+
+COPY package*.json ./
+RUN npm ci
+
+COPY prisma ./prisma
+COPY ./src/seed.ts ./src/seed.ts
+
+CMD ["npx", "prisma", "migrate", "deploy"]

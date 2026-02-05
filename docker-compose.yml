@@ -1,0 +1,73 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: sigflux-db
+    restart: unless-stopped
+    env_file: .env.docker
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sigflux} -d ${POSTGRES_DB:-sigflux}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - sigflux-network
+
+  # Backend API
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sigflux-api
+    restart: unless-stopped
+    env_file: .env.docker
+    ports:
+      - "${API_PORT:-3000}:3000"
+    depends_on:
+        migrate:
+            condition: service_completed_successfully
+    networks:
+      - sigflux-network
+
+  migrate:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile.migrate
+    container_name: sigflux-migrate
+    restart: "no"
+    env_file: .env.docker
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-sigflux}:${POSTGRES_PASSWORD:-sigflux123}@postgres:5432/${POSTGRES_DB:-sigflux}?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - sigflux-network
+
+  seed:
+    build:
+      context: .
+      dockerfile: Dockerfile.migrate
+    container_name: sigflux-seed
+    env_file: .env.docker
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    command: sh -c "sleep 3 && npm run db:generate && npm run seed"
+    networks:
+      - sigflux-network
+    profiles:
+      - seed
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  sigflux-network:
+    driver: bridge

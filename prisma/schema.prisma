@@ -1,0 +1,204 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider      = "prisma-client-js"
+    binaryTargets = ["native", "linux-musl"]
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+// ==================== MODELS ====================
+
+model User {
+    id           String   @id @default(uuid())
+    nomeCompleto String   @map("nome_completo")
+    cpf          String   @unique
+    email        String   @unique
+    matricula    String   @unique
+    telefone     String
+    cargo        String
+    password     String
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+
+    @@map("users")
+}
+
+model Paciente {
+    id             String   @id @default(uuid())
+    nomeCompleto   String   @map("nome_completo")
+    cpf            String   @unique
+    rg             String
+    endereco       String
+    telefone       String
+    dataNascimento String   @map("data_nascimento")
+    status         String   @default("inativo")
+    createdAt      DateTime @default(now())
+    updatedAt      DateTime @updatedAt
+
+    acompanhantes      Acompanhante[]
+    viagemPassageiros  ViagemPassageiro[]
+    historicoViagens   HistoricoViagem[]
+    documentosAnexados String[]           @default([])
+
+    @@map("pacientes")
+}
+
+model Acompanhante {
+    id           String   @id @default(uuid())
+    nomeCompleto String   @map("nome_completo")
+    cpf          String
+    telefone     String
+    parentesco   String
+    pacienteId   String
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+
+    paciente          Paciente           @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+    viagemPassageiros ViagemPassageiro[]
+
+    @@map("acompanhantes")
+}
+
+model HistoricoViagem {
+    id         String   @id @default(uuid())
+    dataIda    String
+    dataVolta  String?
+    origem     String
+    destino    String
+    isPresente Boolean  @default(true)
+    status     String
+    pacienteId String
+    viagemId   String?
+    createdAt  DateTime @default(now())
+
+    paciente Paciente @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+    viagem   Viagem?  @relation(fields: [viagemId], references: [id], onDelete: SetNull)
+
+    @@map("historico_viagens")
+}
+
+model Motorista {
+    id                 String   @id @default(uuid())
+    nomeCompleto       String   @map("nome_completo")
+    telefone           String
+    matricula          String   @unique
+    status             String   @default("ativo")
+    documentosAnexados String[] @default([])
+    createdAt          DateTime @default(now())
+    updatedAt          DateTime @updatedAt
+
+    viagens ViagemMotorista[]
+
+    @@map("motoristas")
+}
+
+model Veiculo {
+    id                 String   @id @default(uuid())
+    placa              String   @unique
+    chassi             String   @unique
+    modelo             String
+    ano                Int
+    cor                String
+    capacidade         Int
+    status             String   @default("Inativo")
+    documentosAnexados String[] @default([])
+    createdAt          DateTime @default(now())
+    updatedAt          DateTime @updatedAt
+
+    viagens ViagemVeiculo[]
+
+    @@map("veiculos")
+}
+
+model CasaApoio {
+    id               String   @id @default(uuid())
+    nome             String
+    endereco         String
+    capacidadeMaxima Int      @map("capacidade_maxima")
+    lotacaoAtual     Int      @default(0) @map("lotacao_atual")
+    acomodacoes      String[] @default([])
+    createdAt        DateTime @default(now())
+    updatedAt        DateTime @updatedAt
+
+    viagens ViagemParada[]
+
+    @@map("casas_apoio")
+}
+
+model Viagem {
+    id              String   @id @default(uuid())
+    tipo            String?
+    enderecoDestino String   @map("endereco_destino")
+    localSaida      String?  @map("local_saida")
+    horarioSaida    String?  @map("horario_saida")
+    observacoes     String?
+    dataHora        String   @map("data_hora")
+    status          String   @default("Planejada")
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
+
+    veiculos    ViagemVeiculo[]
+    motoristas  ViagemMotorista[]
+    passageiros ViagemPassageiro[]
+    paradas     ViagemParada[]
+    historicos  HistoricoViagem[]
+
+    @@map("viagens")
+}
+
+// Tabelas de relacionamento many-to-many
+
+model ViagemVeiculo {
+    id        String @id @default(uuid())
+    viagemId  String
+    veiculoId String
+
+    viagem  Viagem  @relation(fields: [viagemId], references: [id], onDelete: Cascade)
+    veiculo Veiculo @relation(fields: [veiculoId], references: [id], onDelete: Cascade)
+
+    @@unique([viagemId, veiculoId])
+    @@map("viagem_veiculos")
+}
+
+model ViagemMotorista {
+    id          String @id @default(uuid())
+    viagemId    String
+    motoristaId String
+
+    viagem    Viagem    @relation(fields: [viagemId], references: [id], onDelete: Cascade)
+    motorista Motorista @relation(fields: [motoristaId], references: [id], onDelete: Cascade)
+
+    @@unique([viagemId, motoristaId])
+    @@map("viagem_motoristas")
+}
+
+model ViagemPassageiro {
+    id             String  @id @default(uuid())
+    viagemId       String
+    pacienteId     String
+    acompanhanteId String?
+
+    viagem       Viagem        @relation(fields: [viagemId], references: [id], onDelete: Cascade)
+    paciente     Paciente      @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+    acompanhante Acompanhante? @relation(fields: [acompanhanteId], references: [id], onDelete: SetNull)
+
+    @@unique([viagemId, pacienteId])
+    @@map("viagem_passageiros")
+}
+
+model ViagemParada {
+    id          String @id @default(uuid())
+    viagemId    String
+    casaApoioId String
+
+    viagem    Viagem    @relation(fields: [viagemId], references: [id], onDelete: Cascade)
+    casaApoio CasaApoio @relation(fields: [casaApoioId], references: [id], onDelete: Cascade)
+
+    @@unique([viagemId, casaApoioId])
+    @@map("viagem_paradas")
+}
